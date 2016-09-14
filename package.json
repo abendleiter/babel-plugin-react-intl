@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-react-intl",
-  "version": "2.2.0-abend.1",
+  "version": "2.2.0-abend.2",
   "description": "Extracts string messages for translation from modules that use React Intl.",
   "repository": {
     "type": "git",
@@ -34,6 +34,7 @@
     "clean": "rimraf lib/",
     "test": "cross-env NODE_ENV=test mocha --compilers js:babel-register",
     "build": "babel src/ --out-dir lib/",
+    "postinstall": "babel src/ --out-dir lib/",
     "build:fixtures": "babel-node ./scripts/build-fixtures.js",
     "preversion": "npm run lint && npm run clean && npm run build",
     "prepublish": "npm run clean && npm run build"
