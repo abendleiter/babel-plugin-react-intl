@@ -11,6 +11,7 @@ import printICUMessage from './print-icu-message';
 
 const COMPONENT_NAMES = [
     'FormattedMessage',
+    'M',
     'FormattedHTMLMessage',
 ];
 
@@ -18,7 +19,7 @@ const FUNCTION_NAMES = [
     'defineMessages',
 ];
 
-const DESCRIPTOR_PROPS = new Set(['id', 'description', 'defaultMessage']);
+const DESCRIPTOR_PROPS = new Set(['id', 'msg', 'ctx', 'help']);
 
 const EXTRACTED_TAG = Symbol('ReactIntlExtracted');
 
@@ -97,8 +98,7 @@ export default function ({types: t}) {
     function evaluateMessageDescriptor({...descriptor}, {isJSXSource = false} = {}) {
         Object.keys(descriptor).forEach((key) => {
             let valuePath = descriptor[key];
-
-            if (key === 'defaultMessage') {
+            if (key === 'msg') {
                 descriptor[key] = getICUMessageValue(valuePath, {isJSXSource});
             } else {
                 descriptor[key] = getMessageDescriptorValue(valuePath);
@@ -108,31 +108,29 @@ export default function ({types: t}) {
         return descriptor;
     }
 
-    function storeMessage({id, description, defaultMessage}, path, state) {
-        const {file, opts, reactIntl} = state;
+    function md5(str) {
+        return require('crypto').createHash('md5').update(str).digest("hex")
+    }
 
-        if (!(id && defaultMessage)) {
+    function generateId({msg, ctx}) {
+        if (!msg) {
             throw path.buildCodeFrameError(
-                '[React Intl] Message Descriptors require an `id` and `defaultMessage`.'
+                '[React Intl] Message Descriptors require a `msg`.'
             );
         }
+        const messageIdentifier = ctx ? msg + '(CONTEXT: ' + ctx + ')' : msg;
+        // has the message and context. only take the first 10 chars of the hash to reduce bandwidth
+        return md5(messageIdentifier).slice(0, 10);
+    }
 
-        if (reactIntl.messages.has(id)) {
-            let existing = reactIntl.messages.get(id);
+    function storeMessage({msg, ctx, help}, path, state) {
+        const {file, opts, reactIntl} = state;
+        // create the id from the message and the context
+        const id = generateId({msg, ctx})
 
-            if (description !== existing.description ||
-                defaultMessage !== existing.defaultMessage) {
-
-                throw path.buildCodeFrameError(
-                    `[React Intl] Duplicate message id: "${id}", ` +
-                    'but the `description` and/or `defaultMessage` are different.'
-                );
-            }
-        }
-
-        if (opts.enforceDescriptions && !description) {
+        if (opts.enforceDescriptions && !help) {
             throw path.buildCodeFrameError(
-                '[React Intl] Message must have a `description`.'
+                '[React Intl] Message must have a `help`.'
             );
         }
 
@@ -144,7 +142,7 @@ export default function ({types: t}) {
             };
         }
 
-        reactIntl.messages.set(id, {id, description, defaultMessage, ...loc});
+        reactIntl.messages.set(id, {id, msg, ctx, help, ...loc});
     }
 
     function referencesImport(path, mod, importedNames) {
@@ -237,24 +235,36 @@ export default function ({types: t}) {
                     // write `<FormattedMessage {...descriptor} />` or
                     // `<FormattedMessage id={dynamicId} />`, because it will be
                     // skipped here and extracted elsewhere. The descriptor will
-                    // be extracted only if a `defaultMessage` prop exists.
-                    if (descriptor.defaultMessage) {
+                    // be extracted only if a `msg` prop exists.
+                    if (descriptor.msg) {
                         // Evaluate the Message Descriptor values in a JSX
                         // context, then store it.
                         descriptor = evaluateMessageDescriptor(descriptor, {
                             isJSXSource: true,
                         });
 
+                        // inject the line number into the descriptor
+                        const lineNo = path.node.loc.start.line;
+                        descriptor.lineNo = lineNo;
+
                         storeMessage(descriptor, path, state);
 
-                        // Remove description since it's not used at runtime.
+                        // Remove help since it's not used at runtime.
                         attributes.some((attr) => {
-                            let ketPath = attr.get('name');
-                            if (getMessageDescriptorKey(ketPath) === 'description') {
+                            let keyPath = attr.get('name');
+                            if (getMessageDescriptorKey(keyPath) === 'help') {
                                 attr.remove();
                                 return true;
                             }
                         });
+
+                        // inject the id next to the message
+                        path.node.attributes.push(
+                            t.jSXAttribute(
+                                t.jSXIdentifier('id'),
+                                t.stringLiteral(generateId(descriptor))
+                            )
+                        );
 
                         // Tag the AST node so we don't try to extract it twice.
                         tagAsExtracted(path);
@@ -301,11 +311,11 @@ export default function ({types: t}) {
                     messageObj.replaceWith(t.objectExpression([
                         t.objectProperty(
                             t.stringLiteral('id'),
-                            t.stringLiteral(descriptor.id)
+                            t.stringLiteral(generateId(descriptor))
                         ),
                         t.objectProperty(
-                            t.stringLiteral('defaultMessage'),
-                            t.stringLiteral(descriptor.defaultMessage)
+                            t.stringLiteral('msg'),
+                            t.stringLiteral(descriptor.msg)
                         ),
                     ]));
 

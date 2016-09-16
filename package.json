@@ -1,19 +1,54 @@
 {
-  "name": "babel-plugin-react-intl",
-  "version": "2.2.0-abend.2",
-  "description": "Extracts string messages for translation from modules that use React Intl.",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/yahoo/babel-plugin-react-intl.git"
+  "_args": [
+    [
+      "babel-plugin-react-intl@github:abendleiter/babel-plugin-react-intl#v2.2.0-abend.2",
+      "/home/twallroth/data/abend-react-dashboard"
+    ]
+  ],
+  "_from": "abendleiter/babel-plugin-react-intl#v2.2.0-abend.2",
+  "_id": "babel-plugin-react-intl@2.2.0-abend.2",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/babel-plugin-react-intl",
+  "_phantomChildren": {},
+  "_requested": {
+    "hosted": {
+      "directUrl": "https://raw.githubusercontent.com/abendleiter/babel-plugin-react-intl/v2.2.0-abend.2/package.json",
+      "gitUrl": "git://github.com/abendleiter/babel-plugin-react-intl.git#v2.2.0-abend.2",
+      "httpsUrl": "git+https://github.com/abendleiter/babel-plugin-react-intl.git#v2.2.0-abend.2",
+      "shortcut": "github:abendleiter/babel-plugin-react-intl#v2.2.0-abend.2",
+      "ssh": "git@github.com:abendleiter/babel-plugin-react-intl.git#v2.2.0-abend.2",
+      "sshUrl": "git+ssh://git@github.com/abendleiter/babel-plugin-react-intl.git#v2.2.0-abend.2",
+      "type": "github"
+    },
+    "name": "babel-plugin-react-intl",
+    "raw": "babel-plugin-react-intl@github:abendleiter/babel-plugin-react-intl#v2.2.0-abend.2",
+    "rawSpec": "github:abendleiter/babel-plugin-react-intl#v2.2.0-abend.2",
+    "scope": null,
+    "spec": "github:abendleiter/babel-plugin-react-intl#v2.2.0-abend.2",
+    "type": "hosted"
   },
-  "license": "BSD-3-Clause",
-  "main": "lib/index.js",
-  "author": "Eric Ferraiuolo <edf@ericf.me>",
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "git://github.com/abendleiter/babel-plugin-react-intl.git#f6d2860745d2abd7a17cb32d989c30a6ed6d75db",
+  "_shasum": "81c07f476405413f714ac56d0fec4babac74062e",
+  "_shrinkwrap": null,
+  "_spec": "babel-plugin-react-intl@github:abendleiter/babel-plugin-react-intl#v2.2.0-abend.2",
+  "_where": "/home/twallroth/data/abend-react-dashboard",
+  "author": {
+    "email": "edf@ericf.me",
+    "name": "Eric Ferraiuolo"
+  },
+  "bugs": {
+    "url": "https://github.com/yahoo/babel-plugin-react-intl/issues"
+  },
   "dependencies": {
     "babel-runtime": "^6.2.0",
     "intl-messageformat-parser": "^1.2.0",
     "mkdirp": "^0.5.1"
   },
+  "description": "Extracts string messages for translation from modules that use React Intl.",
   "devDependencies": {
     "babel-cli": "^6.1.18",
     "babel-plugin-espower": "^2.3.1",
@@ -29,22 +64,31 @@
     "power-assert": "^1.4.1",
     "rimraf": "^2.4.3"
   },
-  "scripts": {
-    "lint": "eslint src/",
-    "clean": "rimraf lib/",
-    "test": "cross-env NODE_ENV=test mocha --compilers js:babel-register",
-    "build": "babel src/ --out-dir lib/",
-    "postinstall": "babel src/ --out-dir lib/",
-    "build:fixtures": "babel-node ./scripts/build-fixtures.js",
-    "preversion": "npm run lint && npm run clean && npm run build",
-    "prepublish": "npm run clean && npm run build"
-  },
+  "gitHead": "f6d2860745d2abd7a17cb32d989c30a6ed6d75db",
+  "homepage": "https://github.com/yahoo/babel-plugin-react-intl#readme",
   "keywords": [
     "babel-plugin",
     "react-intl"
   ],
-  "bugs": {
-    "url": "https://github.com/yahoo/babel-plugin-react-intl/issues"
+  "license": "BSD-3-Clause",
+  "main": "lib/index.js",
+  "name": "babel-plugin-react-intl",
+  "optionalDependencies": {},
+  "readme": "# babel-plugin-react-intl\n\nExtracts string messages for translation from modules that use [React Intl][].\n\n_**Note:** This Babel plugin works with React Intl v2.x, and **1.x of this plugin works with Babel 5, 2.x works with Babel 6**._\n\n## Installation\n\n```sh\n$ npm install babel-plugin-react-intl\n```\n\n## Usage\n\n**This Babel plugin only visits ES6 modules which `import` React Intl.**\n\nThe default message descriptors for the app's default language will be extracted from: `defineMessages()`, `<FormattedMessage>`, and `<FormattedHTMLMessage>`; all of which are named exports of the React Intl package.\n\nIf a message descriptor has a `description`, it'll be removed from the source after it's extracted to save bytes since it isn't used at runtime.\n\n### Via `.babelrc` (Recommended)\n\n**.babelrc**\n\n```json\n{\n  \"plugins\": [\n    [\"react-intl\", {\n        \"messagesDir\": \"./build/messages/\"\n    }]\n  ]\n}\n```\n\n#### Options\n\n- **`messagesDir`**: The target location where the plugin will output a `.json` file corresponding to each component from which React Intl messages were extracted. If not provided, the extracted message descriptors will only be accessible via Babel's API.\n\n- **`enforceDescriptions`**: Whether message declarations _must_ contain a `description` to provide context to translators. Defaults to: `false`.\n\n- **`extractSourceLocation`**: Whether the metadata about the location of the message in the source file should be extracted. If `true`, then `file`, `start`, and `end` fields will exist for each extracted message descriptors. Defaults to `false`.\n\n- **`moduleSourceName`**: The ES6 module source name of the React Intl package. Defaults to: `\"react-intl\"`, but can be changed to another name/path to React Intl.\n\n### Via CLI\n\n```sh\n$ babel --plugins react-intl script.js\n```\n\n### Via Node API\n\nThe extract message descriptors are available via the `metadata` property on the object returned from Babel's `transform()` API:\n\n```javascript\nrequire('babel-core').transform('code', {\n  plugins: ['react-intl']\n}) // => { code, map, ast, metadata['react-intl'].messages };\n```\n\n\n[React Intl]: http://formatjs.io/react/\n",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yahoo/babel-plugin-react-intl.git"
   },
-  "homepage": "https://github.com/yahoo/babel-plugin-react-intl#readme"
+  "scripts": {
+    "build": "babel src/ --out-dir lib/",
+    "build:fixtures": "babel-node ./scripts/build-fixtures.js",
+    "clean": "rimraf lib/",
+    "lint": "eslint src/",
+    "postinstall": "babel src/ --out-dir lib/",
+    "prepublish": "npm run clean && npm run build",
+    "preversion": "npm run lint && npm run clean && npm run build",
+    "test": "cross-env NODE_ENV=test mocha --compilers js:babel-register"
+  },
+  "version": "2.2.0-abend.3"
 }
